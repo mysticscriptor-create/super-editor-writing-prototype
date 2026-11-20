@@ -893,18 +893,13 @@ class VirtualizedSingleColumnDocumentLayoutState
                   constraints: BoxConstraints(maxWidth: vm.maxWidth ?? double.infinity),
                   child: SizedBox(
                     width: double.infinity,
-                    child: OverflowBox(
-                      alignment: Alignment.topCenter,
-                      minHeight: 0,
-                      maxHeight: double.infinity,
-                      child: _HeightMeasuringBox(
-                        onHeightMeasured: (h) {
-                          widget.metricsIndex.recordActualComponentHeight(node.id, h);
-                        },
-                        child: Padding(
-                          padding: vm.padding,
-                          child: built,
-                        ),
+                    child: _HeightMeasuringBox(
+                      onHeightMeasured: (h) {
+                        widget.metricsIndex.recordActualComponentHeight(node.id, h);
+                      },
+                      child: Padding(
+                        padding: vm.padding,
+                        child: built,
                       ),
                     ),
                   ),
@@ -1053,8 +1048,12 @@ class VirtualizedSingleColumnDocumentLayoutState
     if (base.nodeId == extent.nodeId) {
       final component = getComponentByNodeId(base.nodeId);
       if (component != null) {
-        final local = component.getRectForSelection(base.nodePosition, extent.nodePosition);
-        return _componentToDocumentRect(base.nodeId, local);
+        try {
+          final local = component.getRectForSelection(base.nodePosition, extent.nodePosition);
+          return _componentToDocumentRect(base.nodeId, local);
+        } catch (_) {
+          // Fall through to offscreen exact metrics fallback.
+        }
       }
       final r1 = getRectForPosition(base)!;
       final r2 = getRectForPosition(extent)!;
@@ -1074,10 +1073,18 @@ class VirtualizedSingleColumnDocumentLayoutState
       if (node == null) continue;
       final component = getComponentByNodeId(node.id);
       late final Rect nodeSelRect;
+      Rect? resolvedRect;
       if (component != null) {
-        final np1 = i == topIdx ? topPos.nodePosition : component.getBeginningPosition();
-        final np2 = i == bottomIdx ? bottomPos.nodePosition : component.getEndPosition();
-        nodeSelRect = _componentToDocumentRect(node.id, component.getRectForSelection(np1, np2));
+        try {
+          final np1 = i == topIdx ? topPos.nodePosition : component.getBeginningPosition();
+          final np2 = i == bottomIdx ? bottomPos.nodePosition : component.getEndPosition();
+          resolvedRect = _componentToDocumentRect(node.id, component.getRectForSelection(np1, np2));
+        } catch (_) {
+          resolvedRect = null;
+        }
+      }
+      if (resolvedRect != null) {
+        nodeSelRect = resolvedRect;
       } else {
         if (i == topIdx) {
           final rStart = getRectForPosition(topPos)!;
@@ -1214,11 +1221,25 @@ class _RenderHeightMeasuringBox extends RenderProxyBox {
 
   @override
   void performLayout() {
-    super.performLayout();
-    final h = size.height;
+    final child = this.child;
+    if (child == null) {
+      size = constraints.smallest;
+      return;
+    }
+    child.layout(
+      BoxConstraints(
+        minWidth: constraints.maxWidth.isFinite ? constraints.maxWidth : 0.0,
+        maxWidth: constraints.maxWidth,
+        minHeight: 0.0,
+        maxHeight: double.infinity,
+      ),
+      parentUsesSize: true,
+    );
+    final h = child.size.height;
     if (_lastHeight == null || (_lastHeight! - h).abs() > 0.5) {
       _lastHeight = h;
       onHeightMeasured(h);
     }
+    size = constraints.constrain(child.size);
   }
 }
