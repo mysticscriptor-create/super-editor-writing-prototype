@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+// ignore: deprecated_member_use
 import 'package:flutter/material.dart';
 // ignore: implementation_imports
 import 'package:super_editor/src/infrastructure/platforms/android/selection_handles.dart';
