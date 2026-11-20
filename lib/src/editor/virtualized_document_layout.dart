@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
@@ -1151,6 +1150,7 @@ class VirtualizedSingleColumnDocumentLayoutState
     return DocumentSelection(base: basePos, extent: extentPos);
   }
 
+  @override
   DocumentPosition? findLastSelectablePosition() {
     for (int i = widget.document.length - 1; i >= 0; i--) {
       final node = widget.document.getNodeAt(i);

@@ -349,7 +349,7 @@ class ScribeSuperEditorState extends State<ScribeSuperEditor> implements SliverC
                     () => EagerPanGestureRecognizer(),
                     (instance) {
                       instance
-                        ..shouldAccept = () => true
+                        ..shouldAccept = (() => true)
                         ..dragStartBehavior = DragStartBehavior.down
                         ..onStart = gestureDelegate.onPanStart
                         ..onUpdate = gestureDelegate.onPanUpdate
@@ -417,7 +417,7 @@ class ScribeSuperEditorState extends State<ScribeSuperEditor> implements SliverC
                   () => EagerPanGestureRecognizer(),
                   (instance) {
                     instance
-                      ..shouldAccept = () => true
+                      ..shouldAccept = (() => true)
                       ..dragStartBehavior = DragStartBehavior.down
                       ..onStart = upstreamGestureDelegate.onPanStart
                       ..onUpdate = upstreamGestureDelegate.onPanUpdate
@@ -456,7 +456,7 @@ class ScribeSuperEditorState extends State<ScribeSuperEditor> implements SliverC
                   () => EagerPanGestureRecognizer(),
                   (instance) {
                     instance
-                      ..shouldAccept = () => true
+                      ..shouldAccept = (() => true)
                       ..dragStartBehavior = DragStartBehavior.down
                       ..onStart = downstreamGestureDelegate.onPanStart
                       ..onUpdate = downstreamGestureDelegate.onPanUpdate
@@ -607,7 +607,7 @@ class ScribeSuperEditorState extends State<ScribeSuperEditor> implements SliverC
           controller: widget.scrollController,
           child: CustomScrollView(
             controller: widget.scrollController,
-            cacheExtent: 1200.0,
+            scrollCacheExtent: const ScrollCacheExtent.pixels(1200.0),
             slivers: [
               if (topSpacer > 0.0)
                 SliverToBoxAdapter(
@@ -624,8 +624,8 @@ class ScribeSuperEditorState extends State<ScribeSuperEditor> implements SliverC
                     selection: widget.composer.selectionNotifier,
                     isDocumentLayoutAvailable: () =>
                         (_sliverLayersKey.currentContext?.findRenderObject() as RenderSliver?)
-                            ?.hasSize ==
-                        true,
+                            ?.geometry !=
+                        null,
                     getDocumentLayout: () => _editContext.documentLayout,
                     placeCaretAtEndOfDocumentOnGainFocus: true,
                     restorePreviousSelectionOnGainFocus: true,
@@ -667,7 +667,7 @@ class ScribeSuperEditorState extends State<ScribeSuperEditor> implements SliverC
                         softwareKeyboardController: _softwareKeyboardController,
                         imePolicies: const SuperEditorImePolicies(
                           openKeyboardOnSelectionChange: true,
-                          openKeyboardOnTappingExistingSelection: true,
+                          closeKeyboardOnSelectionLost: false,
                         ),
                         imeConfiguration: SuperEditorImeConfiguration(
                           keyboardBrightness: Theme.of(context).brightness,
