@@ -394,8 +394,10 @@ class ScribeSuperEditorState extends State<ScribeSuperEditor> implements SliverC
     final dpr = MediaQuery.devicePixelRatioOf(context);
     final gestureSettings = MediaQuery.maybeOf(context)?.gestureSettings;
 
-    return Stack(
-      children: [
+    return SizedBox.expand(
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
         Follower.withOffset(
           link: upstreamFocalPoint,
           leaderAnchor: Alignment.bottomLeft,
