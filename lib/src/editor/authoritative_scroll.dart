@@ -21,7 +21,6 @@ class AuthoritativeScrollPosition extends ScrollPositionWithSingleContext {
   final VoidCallback? onUserScrollStarted;
 
   bool suppressCompetingScrolls = false;
-  }
 
   /// Authoritative scroll update used exclusively by our deletion coordinator.
   void authoritativeJumpTo(double value) {
