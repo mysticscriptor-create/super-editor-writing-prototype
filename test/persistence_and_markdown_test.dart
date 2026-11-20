@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:ui' show Color;
 
-import 'package:attributed_text/attributed_text.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:scribe_supereditor_prototype/src/editor/document_attributions.dart';

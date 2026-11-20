@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
 /// A [ScrollPositionWithSingleContext] that lets an authoritative animation
@@ -19,11 +20,11 @@ class AuthoritativeScrollPosition extends ScrollPositionWithSingleContext {
   /// animation (Scenario E) can yield cleanly without fighting user touch.
   final VoidCallback? onUserScrollStarted;
 
-  bool _suppressCompetingScrolls = false;
-  bool get suppressCompetingScrolls => _suppressCompetingScrolls;
+  bool suppressCompetingScrolls = false;
+  bool get suppressCompetingScrolls => suppressCompetingScrolls;
 
   set suppressCompetingScrolls(bool value) {
-    _suppressCompetingScrolls = value;
+    suppressCompetingScrolls = value;
   }
 
   /// Authoritative scroll update used exclusively by our deletion coordinator.
@@ -38,7 +39,7 @@ class AuthoritativeScrollPosition extends ScrollPositionWithSingleContext {
 
   @override
   void jumpTo(double value) {
-    if (_suppressCompetingScrolls) {
+    if (suppressCompetingScrolls) {
       return;
     }
     super.jumpTo(value);
@@ -50,7 +51,7 @@ class AuthoritativeScrollPosition extends ScrollPositionWithSingleContext {
     required Duration duration,
     required Curve curve,
   }) async {
-    if (_suppressCompetingScrolls) {
+    if (suppressCompetingScrolls) {
       return;
     }
     return super.animateTo(to, duration: duration, curve: curve);
@@ -63,7 +64,7 @@ class AuthoritativeScrollPosition extends ScrollPositionWithSingleContext {
     Curve? curve,
     bool? clamp = true,
   }) async {
-    if (_suppressCompetingScrolls) {
+    if (suppressCompetingScrolls) {
       return;
     }
     return super.moveTo(to, duration: duration, curve: curve, clamp: clamp);
@@ -96,6 +97,10 @@ class AuthoritativeScrollController extends ScrollController {
     if (!hasClients) return null;
     final pos = position;
     return pos is AuthoritativeScrollPosition ? pos : null;
+  }
+
+  void authoritativeJumpTo(double value) {
+    authoritativePosition?.authoritativeJumpTo(value);
   }
 
   @override

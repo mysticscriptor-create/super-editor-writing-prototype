@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:attributed_text/attributed_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -10,7 +9,6 @@ import 'package:uuid/uuid.dart';
 
 import '../editor/authoritative_scroll.dart';
 import '../editor/deletion_coordinator.dart';
-import '../editor/deletion_geometry.dart';
 import '../editor/document_attributions.dart';
 import '../editor/local_image_node.dart';
 import '../editor/scribe_super_editor.dart';
@@ -59,7 +57,7 @@ class _EditorScreenState extends State<EditorScreen>
     super.initState();
     _splitState = SplitSeamRenderState();
     _scrollController = AuthoritativeScrollController(
-      onUserDragStart: () => _deletionCoordinator?.handleUserScrollStarted(),
+      onUserScrollStarted: () => _deletionCoordinator?.handleUserScrollStarted(),
     );
     _initializeStorageAndDocument();
   }

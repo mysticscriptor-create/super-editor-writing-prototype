@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+// ignore: implementation_imports
+import 'package:super_editor/src/infrastructure/platforms/android/selection_handles.dart';
 import 'package:super_editor/super_editor.dart';
 
 import 'authoritative_scroll.dart';
@@ -74,6 +76,19 @@ class DeletionCoordinator extends ChangeNotifier {
   GlideAnimationPlan? _activeGlidePlan;
   CurvedAnimation? _activeCurve;
   bool _isMutating = false;
+
+  GlobalKey? _upstreamHandleKey;
+  GlobalKey? _downstreamHandleKey;
+
+  void attachHandleKeys({required GlobalKey upstream, required GlobalKey downstream}) {
+    _upstreamHandleKey = upstream;
+    _downstreamHandleKey = downstream;
+  }
+
+  void detachHandleKeys() {
+    _upstreamHandleKey = null;
+    _downstreamHandleKey = null;
+  }
 
   LastDeletionReport? _lastReport;
   LastDeletionReport? get lastReport => _lastReport;
@@ -220,8 +235,12 @@ class DeletionCoordinator extends ChangeNotifier {
     final downstreamRectVp = downstreamRectDoc.translate(0.0, vpShift);
     final selectionRectVp = selectionRectDoc.translate(0.0, vpShift);
 
-    final actualUpstreamHandleVp = _getActualHandleRectVp(DocumentKeys.upstreamHandle, usableViewportGlobal);
-    final actualDownstreamHandleVp = _getActualHandleRectVp(DocumentKeys.downstreamHandle, usableViewportGlobal);
+    final actualUpstreamHandleVp = _upstreamHandleKey != null
+        ? _getActualHandleRectVp(_upstreamHandleKey!, usableViewportGlobal)
+        : null;
+    final actualDownstreamHandleVp = _downstreamHandleKey != null
+        ? _getActualHandleRectVp(_downstreamHandleKey!, usableViewportGlobal)
+        : null;
 
     final classification = classifyDeletionGeometry(
       usableViewportLocal: usableViewportLocal,

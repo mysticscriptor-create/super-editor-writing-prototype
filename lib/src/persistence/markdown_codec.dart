@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:attributed_text/attributed_text.dart';
 import 'package:path/path.dart' as p;
 import 'package:super_editor/super_editor.dart';
 

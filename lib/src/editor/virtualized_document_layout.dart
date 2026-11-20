@@ -51,8 +51,17 @@ class DocumentMetricsIndex extends ChangeNotifier {
   double _crossAxisExtent = 0.0;
   TextScaler _textScaler = TextScaler.noScaling;
   bool _backgroundPassScheduled = false;
+  bool _pauseBackgroundMeasurement = false;
   int _nextBackgroundIndex = 0;
   bool _disposed = false;
+
+  void setPauseBackgroundMeasurement(bool pause) {
+    if (_pauseBackgroundMeasurement == pause) return;
+    _pauseBackgroundMeasurement = pause;
+    if (!pause) {
+      _scheduleBackgroundMeasurement();
+    }
+  }
 
   int get length => _entries.length;
   double get totalHeight => _entries.isEmpty ? 0.0 : _entries.last.bottom;
@@ -526,8 +535,7 @@ class DocumentMetricsIndex extends ChangeNotifier {
       }
       final offset = textPos.offset.clamp(0, node.text.length);
       final caretOffset = painter.getOffsetForCaret(TextPosition(offset: offset), Rect.zero);
-      final caretHeight = painter.getFullHeightForCaret(TextPosition(offset: offset), Rect.zero) ??
-          ((resolved.baseStyle.fontSize ?? 17.0) * (resolved.baseStyle.height ?? 1.48));
+      final caretHeight = painter.getFullHeightForCaret(TextPosition(offset: offset), Rect.zero);
       return Rect.fromLTWH(
         nodeLeft + indentSpace + caretOffset.dx,
         entry.top + entry.padding.top + caretOffset.dy,
@@ -623,7 +631,7 @@ class VirtualizedNodeViewModelFactory {
       if (idx >= startIdx && idx <= endIdx) {
         final startOff = idx == startIdx ? (normal.start.nodePosition as TextNodePosition).offset : 0;
         final endOff = idx == endIdx ? (normal.end.nodePosition as TextNodePosition).offset : node.text.length;
-        (vm as TextComponentViewModel)
+        vm
           ..composingRegion = TextRange(start: startOff, end: endOff)
           ..showComposingRegionUnderline = true;
       }
@@ -661,7 +669,7 @@ class VirtualizedNodeViewModelFactory {
         }
 
         if (vm is TextComponentViewModel && nodeSelection is TextNodeSelection) {
-          (vm as TextComponentViewModel)
+          vm
             ..selection = TextSelection(
               baseOffset: nodeSelection.baseOffset,
               extentOffset: nodeSelection.extentOffset,
@@ -1130,14 +1138,19 @@ class VirtualizedSingleColumnDocumentLayoutState
   }
 
   @override
-  DocumentSelection? getSelectionInRect(Offset baseOffset, Offset extentOffset) {
+  CaretGeometry getCaretForPosition(DocumentPosition position) {
+    final rect = getRectForPosition(position) ?? Rect.zero;
+    return CaretGeometry(x: rect.left, top: rect.top, bottom: rect.bottom);
+  }
+
+  @override
+  DocumentSelection? getDocumentSelectionInRegion(Offset baseOffset, Offset extentOffset) {
     final basePos = getDocumentPositionNearestToOffset(baseOffset);
     final extentPos = getDocumentPositionNearestToOffset(extentOffset);
     if (basePos == null || extentPos == null) return null;
     return DocumentSelection(base: basePos, extent: extentPos);
   }
 
-  @override
   DocumentPosition? findLastSelectablePosition() {
     for (int i = widget.document.length - 1; i >= 0; i--) {
       final node = widget.document.getNodeAt(i);

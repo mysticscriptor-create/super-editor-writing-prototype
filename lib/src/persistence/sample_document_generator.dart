@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' show Color;
 
-import 'package:attributed_text/attributed_text.dart';
 import 'package:path/path.dart' as p;
 import 'package:super_editor/super_editor.dart';
 

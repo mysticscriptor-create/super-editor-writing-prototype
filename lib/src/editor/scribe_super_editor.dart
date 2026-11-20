@@ -5,6 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:follow_the_leader/follow_the_leader.dart';
+// ignore: implementation_imports
+import 'package:super_editor/src/infrastructure/flutter/eager_pan_gesture_recognizer.dart';
+// ignore: implementation_imports
+import 'package:super_editor/src/infrastructure/platforms/android/selection_handles.dart';
 import 'package:super_editor/super_editor.dart';
 
 import 'authoritative_scroll.dart';
@@ -207,6 +211,10 @@ class ScribeSuperEditorState extends State<ScribeSuperEditor> implements SliverC
       superEditorAddEmptyParagraphTapHandlerFactory(_editContext),
     ];
 
+    widget.deletionCoordinator.attachHandleKeys(
+      upstream: _upstreamClipKey,
+      downstream: _downstreamClipKey,
+    );
     widget.scrollController.addListener(_onScrollChanged);
     widget.deletionCoordinator.addListener(_onDeletionCoordinatorChanged);
 
@@ -237,6 +245,7 @@ class ScribeSuperEditorState extends State<ScribeSuperEditor> implements SliverC
 
   @override
   void dispose() {
+    widget.deletionCoordinator.detachHandleKeys();
     widget.scrollController.removeListener(_onScrollChanged);
     widget.deletionCoordinator.removeListener(_onDeletionCoordinatorChanged);
     widget.editor.context.remove(Editor.layoutKey, _documentLayoutEditable);
@@ -745,5 +754,38 @@ class ScribeSuperEditorState extends State<ScribeSuperEditor> implements SliverC
         ),
       ),
     );
+  }
+}
+
+
+class _LocalImageTapHandler extends ContentTapDelegate {
+  _LocalImageTapHandler(this.editContext);
+
+  final SuperEditorContext editContext;
+
+  @override
+  TapHandlingInstruction onTap(DocumentTapDetails details) {
+    final pos = details.documentLayout.getDocumentPositionAtOffset(details.layoutOffset);
+    if (pos == null) return TapHandlingInstruction.continueHandling;
+    final node = editContext.document.getNodeById(pos.nodeId);
+    if (node is! LocalImageNode) return TapHandlingInstruction.continueHandling;
+
+    editContext.editor.execute([
+      ChangeSelectionRequest(
+        DocumentSelection(
+          base: DocumentPosition(
+            nodeId: node.id,
+            nodePosition: const UpstreamDownstreamNodePosition.upstream(),
+          ),
+          extent: DocumentPosition(
+            nodeId: node.id,
+            nodePosition: const UpstreamDownstreamNodePosition.downstream(),
+          ),
+        ),
+        SelectionChangeType.placeCaret,
+        SelectionReason.userInteraction,
+      ),
+    ]);
+    return TapHandlingInstruction.halt;
   }
 }
