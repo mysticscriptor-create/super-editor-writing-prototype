@@ -967,7 +967,10 @@ class VirtualizedSingleColumnDocumentLayoutState
     final key = _mountedComponentKeys[nodeId];
     if (key == null || key.currentContext == null) return null;
     final state = key.currentState;
-    return state is DocumentComponent ? state : null;
+    if (state is! DocumentComponent) return null;
+    final box = state.context.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize || !box.attached) return null;
+    return state;
   }
 
   Rect _componentToDocumentRect(String nodeId, Rect localRect) {
@@ -1014,8 +1017,12 @@ class VirtualizedSingleColumnDocumentLayoutState
   Rect? getEdgeForPosition(DocumentPosition position) {
     final component = getComponentByNodeId(position.nodeId);
     if (component != null) {
-      final localEdge = component.getEdgeForPosition(position.nodePosition);
-      return _componentToDocumentRect(position.nodeId, localEdge);
+      try {
+        final localEdge = component.getEdgeForPosition(position.nodePosition);
+        return _componentToDocumentRect(position.nodeId, localEdge);
+      } catch (_) {
+        // Inner SuperText paragraph may be mid-re-layout; fall back to exact TextPainter metrics.
+      }
     }
     if (widget.document.getNodeById(position.nodeId) == null) return null;
     return widget.metricsIndex.getOffscreenRectForPosition(position);
@@ -1025,8 +1032,12 @@ class VirtualizedSingleColumnDocumentLayoutState
   Rect? getRectForPosition(DocumentPosition position) {
     final component = getComponentByNodeId(position.nodeId);
     if (component != null) {
-      final localRect = component.getRectForPosition(position.nodePosition);
-      return _componentToDocumentRect(position.nodeId, localRect);
+      try {
+        final localRect = component.getRectForPosition(position.nodePosition);
+        return _componentToDocumentRect(position.nodeId, localRect);
+      } catch (_) {
+        // Inner SuperText paragraph may be mid-re-layout; fall back to exact TextPainter metrics.
+      }
     }
     if (widget.document.getNodeById(position.nodeId) == null) return null;
     return widget.metricsIndex.getOffscreenRectForPosition(position);

@@ -612,11 +612,12 @@ class ScribeSuperEditorState extends State<ScribeSuperEditor> implements SliverC
             controller: widget.scrollController,
             scrollCacheExtent: const ScrollCacheExtent.pixels(1200.0),
             slivers: [
-              if (topSpacer > 0.0)
-                SliverToBoxAdapter(
-                  child: SizedBox(height: topSpacer),
-                ),
+              SliverToBoxAdapter(
+                key: const ValueKey('scribe-top-spacer'),
+                child: SizedBox(height: topSpacer),
+              ),
               SuperEditorAndroidControlsScope(
+                key: const ValueKey('scribe-controls-scope'),
                 controller: _androidControlsController,
                 child: SuperEditorFocusDebugVisuals(
                   focusNode: widget.focusNode,
